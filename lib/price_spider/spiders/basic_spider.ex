@@ -25,7 +25,8 @@ defmodule PriceSpider.BasicSpider do
     products = response.body |> Floki.parse_document |> elem(1) |> Floki.find(".product_card > .productDetails > .productMeta > a")
 
     items = products |> Enum.map(fn product -> 
-      url = product |> elem(1) |> List.last |> elem(1)
+      url = product |> elem(1) |> List.last |> elem(1) |> build_absolute_url(response.request_url)
+      
       [product_name, price] = product |> Floki.text |> String.split("Now")
       [sale_price, original_price] = price |> String.split(" AUD", trim: true)
 
@@ -39,6 +40,10 @@ defmodule PriceSpider.BasicSpider do
       :items => items,
       :requests => []
     }
+  end
+
+  def build_absolute_url(url, request_url) do
+    URI.merge(request_url, url) |> to_string()
   end
 end
 
