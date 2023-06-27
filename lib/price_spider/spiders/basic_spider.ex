@@ -2,18 +2,12 @@ defmodule PriceSpider.BasicSpider do
   use Crawly.Spider
   @impl Crawly.Spider
 
-  def base_url do
-    # "https://www.rapha.cc"
-        "https://maap.cc"
-  end
+  def base_url(), do: "https://maap.cc"
 
   @impl Crawly.Spider
   def init() do
     [
-      start_urls: [
-        # "https://www.rapha.cc/rd/en/archive-sale/category/archive?q=size:X-Small:gender:Mens&sort=price-desc&"
-        "https://maap.cc/collections/archive-sale-man"
-      ]
+      start_urls: [ "https://maap.cc/collections/archive-sale-man" ]
     ]
   end
 
@@ -22,35 +16,26 @@ defmodule PriceSpider.BasicSpider do
     # url = "https://maap.cc/collections/archive-sale-man"
     # response = Crawly.fetch url
     
-    {:ok, document} =
-       response.body
-       |> Floki.parse_document
+    products = response.body |> Floki.parse_document |> elem(1) |> Floki.find(".product_card > .productDetails > .productMeta > a")
 
+      items = products |> Enum.map(fn product -> 
 
-    products =
-      document
-      |> Floki.find(".product_card > .productDetails > .productMeta > a")
+          url = product |> elem(1) |> List.last |> elem(1)
+          [product_name, price] = product |> Floki.text |> String.split("Now")
+          [sale_price, original_price] = price |> String.split(" AUD", trim: true)
 
-    {"a", url, product} = List.first products
+          %{url: url,
+            name: product_name,
+            price: sale_price,
+            og_price: original_price
+          }
+        end)
 
-    {"href", product_link } = List.last(url)
-
-    [product_name, price] = product
-                            |> Floki.text
-                            |> String.split("Now")
-
-    [sale_price, original_price] = price
-      |> String.split(" AUD", trim: true)
 
     %Crawly.ParsedItem{
-      :items => [
-        %{"product_link"=> product_link,
-        "name" => product_name,
-        "price" => sale_price,
-        "og_price" => original_price}
-        ],
-        :requests => []
-      }
+      :items => items,
+      :requests => []
+    }
   end
 end
 
