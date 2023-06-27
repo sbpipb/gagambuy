@@ -21,8 +21,8 @@ defmodule PriceSpider.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    [ {:crawly, "~> 0.13.0"},
-      {:floki, "~> 0.26.0"}
+    [ {:crawly, "~> 0.15.0"},
+      {:floki, "~> 0.33.0"}
     ]
   end
 end
